@@ -141,7 +141,7 @@ public class OndernemingsService {
     }
 
     private String extractOriginalJson(String ondernemingsnr) {
-        String url = String.format("https://geo.api.vlaanderen.be/VKBO/ogc/features/v1/collections/Vkbo/items?f=application/json&limit=50&filter-lang=cql-text&filter=Ondernemingsnr eq '%s'", ondernemingsnr);
+        String url = String.format("https://geo.api.vlaanderen.be/VKBO/ogc/features/v1/collections/Vkbo/items?f=application/json&filter-lang=cql-text&filter=Ondernemingsnr eq '%s'", ondernemingsnr);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/json");
         HttpEntity<Void> requestEntity = new HttpEntity<>(headers);

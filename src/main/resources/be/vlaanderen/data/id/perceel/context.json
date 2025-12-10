@@ -75,7 +75,7 @@
 
 
     "adres": {
-      "@id": "organisatie:vestigingsAdres",
+      "@id": "locn:address",
       "@type": "@id"
     },
     "fullAddress": {
@@ -95,14 +95,17 @@
       "@type": "xsd:string"
     },
     "postcode": {
-      "@id": "adres_:postcode",
+      "@id": "locn:postCode",
       "@type": "xsd:string"
     },
     "gemeente": {
-      "@id": "adres_:gemeentenaam",
+      "@id": "locn:geographicName",
       "@type": "xsd:string"
     },
-
+  "hasSerialization" : {
+    "@id" : "geo:hasSerialization",
+    "@type" : "geo:wktLiteral"
+  },
     "location": {
       "@id": "dct:spatial",
       "@type": "@id"
