@@ -40,103 +40,54 @@ public class HTMLController {
     @Autowired
     private OndernemingsService ondernemingsService;
 
-    @GetMapping(value = "id/perceel/{ondernemingsnr}/{capakey2}",
+    @GetMapping(value = "id/onderneming/{ondernemingsnr}",
                 produces = "text/html")
     public String getPerceelAsHtml(
-            @PathVariable String ondernemingsnr,
-            @PathVariable String capakey2) {
-        return "redirect:/doc/perceel/{ondernemingsnr}/{capakey2}";
+            @PathVariable String ondernemingsnr) {
+        return "redirect:/doc/onderneming/{ondernemingsnr}";
     }
 
-    @GetMapping(value = "doc/onderneming/{ondernemingsnr}/{capakey2}")
+    @GetMapping(value = "doc/onderneming/{ondernemingsnr}")
     public String getPerceelDoc(
             @PathVariable String ondernemingsnr,
-            @PathVariable String capakey2,
             Model model) {
 
         String json = ondernemingsService.getJson(ondernemingsnr);
-        //String jsonld = rdfToLang(perceelService.extractModel(json, ondernemingsnr, capakey2), JSONLD);
         String jsonld = ondernemingsService.getJsonLd(json, ondernemingsnr);
 
-        Map jsonAsMap;
-        String polygon;
-        Coordinate center;
+        Map<String, Object> jsonAsMap;
+        double lon;
+        double lat;
+
         try {
-            JsonNode jsonNode = objectMapper.readTree(json);
-            jsonAsMap = objectMapper.convertValue(jsonNode, Map.class);
-            polygon = getPolygonAsWkt(jsonNode);
-            center = getCenterCoordinate(jsonNode);
+            JsonNode root = objectMapper.readTree(json);
+
+            JsonNode feature = root.get("features").get(0);
+            JsonNode props = feature.get("properties");
+            ArrayNode coords = (ArrayNode) feature.get("geometry").get("coordinates");
+
+            lon = coords.get(0).asDouble();
+            lat = coords.get(1).asDouble();
+
+            jsonAsMap = objectMapper.convertValue(props, Map.class);
         }
-        catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        catch (Exception e) {
+            throw new RuntimeException("Kon JSON niet verwerken", e);
         }
 
-        model.addAttribute("uri", "http://localhost:8080/id/perceel/" + ondernemingsnr + "/" + capakey2);
-        model.addAttribute("capakey", ondernemingsnr + "/" + capakey2);
-        model.addAttribute("polygon", polygon);
-        model.addAttribute("centerX", center.getX());
-        model.addAttribute("centerY", center.getY());
+        // WKT POINT maken (EPSG:4326)
+        String wktPoint = "POINT(" + lon + " " + lat + ")";
+
+        model.addAttribute("uri", "http://localhost:8080/id/onderneming/" + ondernemingsnr);
+        model.addAttribute("ondernemingsnr", ondernemingsnr);
+        model.addAttribute("lon", lon);
+        model.addAttribute("lat", lat);
+        model.addAttribute("wkt", wktPoint);
         model.addAttribute("fields", jsonAsMap);
         model.addAttribute("jsonld", jsonld);
 
         return "fiche";
     }
 
-    private String getPolygonAsWkt(JsonNode jsonnode) throws JsonProcessingException {
-        ArrayNode coords = (ArrayNode) objectMapper.readTree(jsonnode.get("geometry").get("shape").asText()).get("coordinates").get(0);
 
-        List<String> wktCoords = new ArrayList<>();
-        for (JsonNode coord : coords) {
-            wktCoords.add(coord.get(0).asText() + " " + coord.get(1).asText());
-        }
-        String wktLambert = "POLYGON((" + String.join(", ", wktCoords) + "))";
-        return convertToWkt(wktLambert);
-    }
-
-    private Coordinate getCenterCoordinate(JsonNode jsonnode) throws JsonProcessingException {
-        ArrayNode coords = (ArrayNode) objectMapper.readTree(jsonnode.get("geometry").get("center").asText()).get("coordinates");
-        String coordinaat1 = coords.get(0).asText();
-        String coordinaat2 = coords.get(1).asText();
-        String wktLabert = "POINT(" + coordinaat1 + " " + coordinaat2 + ")";
-        return convertToCoordinate(wktLabert);
-    }
-
-    public String convertToWkt(String wktLamber) {
-        try {
-            WKTReader reader = new WKTReader();
-            Geometry geom = reader.read(wktLamber);
-            CoordinateReferenceSystem sourceCrs = CRS.decode("EPSG:31370");
-            CoordinateReferenceSystem targetCrs = CRS.decode("EPSG:4326");
-            MathTransform mathTransform = CRS.findMathTransform(sourceCrs, targetCrs, true);
-
-            Geometry transform = JTS.transform(geom, mathTransform);
-            WKTWriter wktWriter = new WKTWriter();
-            return wktWriter.write(transform);
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public Coordinate convertToCoordinate(String wktLamber) {
-        try {
-            WKTReader reader = new WKTReader();
-            Geometry geom = reader.read(wktLamber);
-            CoordinateReferenceSystem sourceCrs = CRS.decode("EPSG:31370");
-            CoordinateReferenceSystem targetCrs = CRS.decode("EPSG:4326");
-            MathTransform mathTransform = CRS.findMathTransform(sourceCrs, targetCrs, true);
-
-            Geometry transform = JTS.transform(geom, mathTransform);
-            return transform.getCoordinates()[0];
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String rdfToLang(org.apache.jena.rdf.model.Model model, Lang lang) {
-        StringWriter writer = new StringWriter();
-        RDFDataMgr.write(writer, model, lang);
-        return writer.toString();
-    }
 }

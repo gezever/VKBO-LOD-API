@@ -94,8 +94,10 @@ public class OndernemingsService {
             // --- JSON-LD root opbouwen ---
             ObjectNode jsonld = mapper.createObjectNode();
             jsonld.set("@context", context);
-            jsonld.put("@id", "https://data.vlaanderen.be/id/organisatie/" + ondernemingsnummer);
+            jsonld.put("@id", "https://data.vlaanderen.be/id/onderneming/" + ondernemingsnummer);
             jsonld.put("ondernemingsnummer", ondernemingsnummer);
+            jsonld.put("type", "org:Organization");
+
 
             // --- Organisatiegegevens vanuit VKBO ---
             jsonld.put("maatschappelijkeNaam", properties.get("Maatschappelijke_naam").asText());
@@ -115,9 +117,8 @@ public class OndernemingsService {
 
             // --- Geometry object ---
             ObjectNode geomLd = mapper.createObjectNode();
-            geomLd.put("@id", "https://data.vlaanderen.be/id/geometry/organisatie/" + ondernemingsnummer);
+            geomLd.put("@id", "https://data.vlaanderen.be/id/geometry/onderneming/" + ondernemingsnummer);
             geomLd.put("wkt", wkt);
-            geomLd.put("@type", "geo:Point");
             jsonld.set("geometry", geomLd);
 
             // --- Identifier object ---
@@ -127,64 +128,6 @@ public class OndernemingsService {
             ident.put("@type", "adms:Identifier");
             jsonld.set("identifier", ident);
 
-            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonld);
-        }
-        catch (Exception e) {
-            throw new RuntimeException("Failed to transform JSON to JSON-LD", e);
-        }
-    }
-
-    private String transformToJsonLd2(String json, String ondernemingsnummer) {
-        // Deze methode verwerkt de JSON en maakt een JSON-LD string.
-        // In een productie-omgeving zou je dit netjes modelleren. Voor nu volstaat een snelle parse & build.
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-//            JsonNode
-            ObjectNode root = (ObjectNode) mapper.readTree(json);
-            JsonNode context = jsonldConfiguration.getJsonLDContext();
-            ArrayNode coords = (ArrayNode) ((ObjectNode) mapper.readTree(root.get("geometry").get("shape").asText())).get("coordinates").get(0);
-            List<String> wktCoords = new ArrayList<>();
-            for (JsonNode coord : coords) {
-                wktCoords.add(coord.get(0).asText() + " " + coord.get(1).asText());
-            }
-            String wkt = "SRID=31370;POLYGON((" + String.join(", ", wktCoords) + "))";
-
-            ObjectNode jsonld = mapper.createObjectNode();
-            jsonld.set("@context", context);
-            jsonld.put("@id", "https://data.vlaanderen.be/id/perceel/" + ondernemingsnummer);
-            //jsonld.put("type", "geo:Feature");
-            jsonld.put("departmentCode", root.get("departmentCode").asText());
-            jsonld.put("departmentName", root.get("departmentName").asText());
-            jsonld.put("sectionCode", root.get("sectionCode").asText());
-            jsonld.put("perceelnummer", root.get("perceelnummer").asText());
-            jsonld.put("grondnummer", root.get("grondnummer").asText());
-            jsonld.put("exponent", root.get("exponent").asText());
-            jsonld.put("macht", root.get("macht").asText());
-            jsonld.put("bisnummer", root.get("bisnummer").asText());
-
-            ObjectNode geometry = mapper.createObjectNode();
-            geometry.put("@id", "https://data.vlaanderen.be/id/geometry/capakey/" + ondernemingsnummer);
-            //geometry.put("type", "sf:Polygon");
-            //geometry.put("type", "geo:Geometry");
-            geometry.put("wkt", wkt);
-            jsonld.set("geometry", geometry);
-
-            ObjectNode address = mapper.createObjectNode();
-            //address.put("type", "locn:Address");
-            address.set("fullAddress", root.get("adres"));
-            address.set("postName", root.get("municipalityName"));
-            jsonld.set("adres", address);
-
-            ObjectNode locn = mapper.createObjectNode();
-            //locn.put("type", "dct:Location");
-            locn.set("municipalityName", root.get("municipalityName"));
-            jsonld.set("location", locn);
-
-            ObjectNode ident = mapper.createObjectNode();
-            ident.put("@id", "https://data.vlaanderen.be/id/identifier/capakey/" + ondernemingsnummer);
-            //ident.put("type", "adms:Identifier");
-            ident.put("capakey", ondernemingsnummer);
-            jsonld.set("identifier", ident);
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonld);
         }
         catch (Exception e) {
@@ -245,7 +188,7 @@ public class OndernemingsService {
         catch (Exception e) {
             throw new RuntimeException("Failed to parse JSON-LD to RDF", e);
         }
-        return model ;//inferTriples(model, reasoningModelConfiguration.loadTurtleFromClasspath(), reasoningModelConfiguration.getRules());
+        return inferTriples(model, reasoningModelConfiguration.loadTurtleFromClasspath(), reasoningModelConfiguration.getRules());
     }
 
     public Model inferTriples(Model dataModel, Model ontologyModel, List<Rule> rules) {

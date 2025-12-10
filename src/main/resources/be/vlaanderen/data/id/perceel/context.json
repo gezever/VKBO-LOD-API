@@ -1,8 +1,8 @@
 {
-
     "type": "@type",
-
-
+    "geo" : "http://www.opengis.net/ont/geosparql#",
+    "todo" : "http://todo.ex/",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
     "org": "http://www.w3.org/ns/org#",
     "adms": "http://www.w3.org/ns/adms#",
     "dct": "http://purl.org/dc/terms/",
@@ -25,7 +25,7 @@
 
     "ondernemingsnummer": {
       "@id": "generiek:gestructureerdeIdentificator",
-      "@type": "@id"
+      "@type": "todo:ondernemingsnummer"
     },
     "maatschappelijkeNaam": {
       "@id": "organisatie:naam",
@@ -45,11 +45,15 @@
     },
     "startdatum": {
       "@id": "organisatie:oprichtingsdatum",
-      "@type": "xsd:date"
+      "@type": "xsd:dateTime"
+    },
+    "waarde": {
+      "@id": "skos:notation",
+      "@type": "todo:ondernemingsnummer"
     },
     "stopzettingsdatum": {
       "@id": "organisatie:opheffingsdatum",
-      "@type": "xsd:date"
+      "@type": "xsd:dateTime"
     },
 
     "identifier": {
@@ -104,12 +108,12 @@
       "@type": "@id"
     },
     "geometry": {
-      "@id": "locn:geometry",
+      "@id": "geo:hasGeometry",
       "@type": "@id"
     },
     "wkt": {
-      "@id": "locn:geometry",
-      "@type": "locn:Geometry"
+      "@id": "geo:asWKT",
+      "@type": "geo:wktLiteral"
     }
 }
 
