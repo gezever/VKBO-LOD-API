@@ -1,0 +1,115 @@
+{
+
+    "type": "@type",
+
+
+    "org": "http://www.w3.org/ns/org#",
+    "adms": "http://www.w3.org/ns/adms#",
+    "dct": "http://purl.org/dc/terms/",
+    "locn": "http://www.w3.org/ns/locn#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "prov": "http://www.w3.org/ns/prov#",
+    "schema": "http://schema.org/",
+    "generiek": "https://data.vlaanderen.be/ns/generiek#",
+    "organisatie": "https://data.vlaanderen.be/ns/organisatie#",
+    "adres_": "https://data.vlaanderen.be/ns/adres#",
+
+
+    "Organisatie": "organisatie:Organisatie",
+    "Identificator": "adms:Identifier",
+    "Adresvoorstelling": "adres_:Adresvoorstelling",
+    "Adres": "locn:Address",
+    "Locatie": "dct:Location",
+
+
+    "ondernemingsnummer": {
+      "@id": "generiek:gestructureerdeIdentificator",
+      "@type": "@id"
+    },
+    "maatschappelijkeNaam": {
+      "@id": "organisatie:naam",
+      "@type": "xsd:string"
+    },
+    "commercieleNaam": {
+      "@id": "organisatie:alternatieveNaam",
+      "@type": "xsd:string"
+    },
+    "rechtsvorm": {
+      "@id": "organisatie:rechtsvorm",
+      "@type": "skos:Concept"
+    },
+    "rechtstoestand": {
+      "@id": "organisatie:rechtstoestand",
+      "@type": "skos:Concept"
+    },
+    "startdatum": {
+      "@id": "organisatie:oprichtingsdatum",
+      "@type": "xsd:date"
+    },
+    "stopzettingsdatum": {
+      "@id": "organisatie:opheffingsdatum",
+      "@type": "xsd:date"
+    },
+
+    "identifier": {
+      "@id": "adms:identifier",
+      "@type": "@id"
+    },
+    "kboNummer": {
+      "@id": "generiek:identificator",
+      "@type": "xsd:string"
+    },
+    "naamruimte": {
+      "@id": "generiek:naamruimte",
+      "@type": "xsd:string"
+    },
+    "objectId": {
+      "@id": "generiek:lokaleIdentificator",
+      "@type": "xsd:string"
+    },
+
+
+    "adres": {
+      "@id": "organisatie:vestigingsAdres",
+      "@type": "@id"
+    },
+    "fullAddress": {
+      "@id": "locn:fullAddress",
+      "@type": "xsd:string"
+    },
+    "straatnaam": {
+      "@id": "adres_:straatnaam",
+      "@type": "xsd:string"
+    },
+    "huisnummer": {
+      "@id": "adres_:huisnummer",
+      "@type": "xsd:string"
+    },
+    "busnummer": {
+      "@id": "adres_:busnummer",
+      "@type": "xsd:string"
+    },
+    "postcode": {
+      "@id": "adres_:postcode",
+      "@type": "xsd:string"
+    },
+    "gemeente": {
+      "@id": "adres_:gemeentenaam",
+      "@type": "xsd:string"
+    },
+
+    "location": {
+      "@id": "dct:spatial",
+      "@type": "@id"
+    },
+    "geometry": {
+      "@id": "locn:geometry",
+      "@type": "@id"
+    },
+    "wkt": {
+      "@id": "locn:geometry",
+      "@type": "locn:Geometry"
+    }
+}
+

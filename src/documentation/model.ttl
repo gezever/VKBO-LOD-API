@@ -1,0 +1,46 @@
+PREFIX adms:    <http://www.w3.org/ns/adms#>
+PREFIX concept: <https://data.omgeving.vlaanderen.be/id/concept/chemische_stof/>
+PREFIX cs:      <https://data.vlaanderen.be/ns/chemische_stof#>
+PREFIX dbo:     <http://dbpedia.org/ontology/>
+PREFIX dbp:     <http://dbpedia.org/property/>
+PREFIX dct:     <http://purl.org/dc/terms/>
+PREFIX geo:     <http://www.opengis.net/ont/geosparql#>
+PREFIX locn:    <http://www.w3.org/ns/locn#>
+PREFIX owl:     <http://www.w3.org/2002/07/owl#>
+PREFIX perceel: <https://data.vlaanderen.be/ns/perceel#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX sf:      <http://www.opengis.net/ont/sf#>
+PREFIX skos:    <http://www.w3.org/2004/02/skos/core#>
+PREFIX vlcs:    <https://data.omgeving.vlaanderen.be/id/conceptscheme/>
+PREFIX xs:      <http://www.w3.org/2001/XMLSchema#>
+
+adms:Identifier
+        skos:notation  "perceel:capakey" .
+
+
+
+geo:Feature
+        geo:hasGeometry         geo:Geometry;
+        adms:identifier         adms:Identifier;
+        locn:address            locn:Address;
+        locn:location           dct:Location;
+        perceel:bisnummer       "xs:string";
+        perceel:departmentCode  "xs:string";
+        perceel:departmentName  "xs:string";
+        perceel:exponent        "xs:string";
+        perceel:grondnummer     "xs:string";
+        perceel:macht           "xs:string";
+        perceel:perceelnummer   "xs:string";
+        perceel:sectionCode     "xs:string" .
+
+geo:Geometry
+        geo:asWKT             "geo:wktLiteral";
+        geo:hasSerialization  "geo:wktLiteral" .
+
+dct:Location
+        locn:geographicName  "xs:string" .
+
+locn:Address
+        locn:fullAddress  "xs:string";
+        locn:postName     "xs:string" .
