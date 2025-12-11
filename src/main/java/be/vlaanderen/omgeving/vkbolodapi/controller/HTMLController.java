@@ -29,6 +29,7 @@ import java.util.Map;
 
 /**
  * https://geo.api.vlaanderen.be/capakey/v2/swagger/ui/index
+ * http://localhost:8080/id/onderneming/1010353978
  */
 @Controller
 public class HTMLController {
@@ -80,9 +81,9 @@ public class HTMLController {
 
         model.addAttribute("uri", "http://localhost:8080/id/onderneming/" + ondernemingsnr);
         model.addAttribute("ondernemingsnr", ondernemingsnr);
-        model.addAttribute("lon", lon);
-        model.addAttribute("lat", lat);
-        model.addAttribute("wkt", wktPoint);
+        model.addAttribute("polygon", wktPoint);
+        model.addAttribute("centerX", lon);
+        model.addAttribute("centerY", lat);
         model.addAttribute("fields", jsonAsMap);
         model.addAttribute("jsonld", jsonld);
 
