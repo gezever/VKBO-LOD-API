@@ -2,6 +2,7 @@ package be.vlaanderen.omgeving.vkbolodapi.service;
 
 import be.vlaanderen.omgeving.vkbolodapi.configuration.JsonldConfiguration;
 import be.vlaanderen.omgeving.vkbolodapi.configuration.ReasoningModelConfiguration;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -31,9 +32,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  *
@@ -49,7 +50,11 @@ public class OndernemingsService {
     private ReasoningModelConfiguration reasoningModelConfiguration;
 
     public String getJson(String ondernemingsnr) {
-        return extractOriginalJson(ondernemingsnr);
+        try {
+            return extractOriginalJson(ondernemingsnr);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String getJsonLd(String ondernemingsnr) {
@@ -71,62 +76,116 @@ public class OndernemingsService {
         String jsonld = transformToJsonLd(originalJson, ondernemingsnr );
         return parseModelFromJsonLD(jsonld);
     }
+
+    private String getValue(JsonNode node, String... keys) {
+        for (String key : keys) {
+            if (node.hasNonNull(key) && !Objects.equals(node.get(key).asText(), " ")) {
+                return node.get(key).asText();
+            }
+        }
+        return null;
+    }
+
+    private ObjectNode addUnit(ObjectNode jsonld, ObjectMapper mapper, JsonNode feature, String ondernemingsnummer){
+
+        JsonNode properties = feature.get("properties");
+        JsonNode geometry = feature.get("geometry");
+
+        String kboNummer = properties.get("Ondernemingsnr").asText();
+        if (kboNummer.startsWith("2")) {
+            jsonld.put("@id", "organisation:" + kboNummer);
+            String ondrmnr = getValue(properties, "Ondernemingsnr_maatsch_zetel");
+            if (ondrmnr != null) {
+                jsonld.put("is_eenheid_van", "organisation:" + ondrmnr);
+            }
+        }
+
+        // --- GEO: WKT POINT ---
+        ArrayNode coords = (ArrayNode) geometry.get("coordinates");
+        double lon = coords.get(0).asDouble();
+        double lat = coords.get(1).asDouble();
+
+        String wkt = "POINT(" + lon + " " + lat + ")";
+
+        // --- Organisatiegegevens vanuit VKBO ---
+
+        jsonld.put("voorkeursnaam", getValue(properties, "Maatschappelijke_naam"));
+        jsonld.put("wettelijke_naam", getValue(properties, "Maatschappelijke_naam"));
+        jsonld.put("alternatieve_naam", getValue(properties, "Commerciele_naam", "Afgekorte_naam", "Zoeknaam"));
+        jsonld.put("rechtsvorm", getValue(properties, "Rechtsvorm"));
+        jsonld.put("rechtstoestand", getValue(properties, "Rechtstoestand"));
+        jsonld.put("startdatum", getValue(properties, "Startdatum"));
+        jsonld.put("inschrijvingsdatum", getValue(properties, "Datum_inschrijving"));
+        String nace = getValue(properties, "NACE_hoofdact_RSZ");
+        if (nace != null) {
+            String nace123 = nace.length() >= 3 ? nace.substring(0, 3) : nace;
+            jsonld.put("activiteit", "nace:" + nace123);
+        }
+
+
+
+        // --- Adresobject ---
+        ObjectNode adres = mapper.createObjectNode();
+        //adres.put("@type", "locn:Address");
+        adres.put("straat", getValue(properties, "VKBO_Straat", "KBO_Straat", "AR_straat", "CRAB_straat"));
+        adres.put("huisnummer", getValue(properties, "VKBO_Huisnr", "KBO_Huisnr", "AR_huisnr"));
+        adres.put("gemeente", getValue(properties, "VKBO_Gemeente", "KBO_Gemeente"));
+        adres.put("postcode", getValue(properties, "VKBO_Postcode", "KBO_Postcode", "AR_postcode"));
+        adres.put("busnummer", getValue(properties, "VKBO_Busnr", "KBO_Busnr", "AR_busnr"));
+        jsonld.set("adres", adres);
+
+        // --- Geometry object ---
+        ObjectNode geomLd = mapper.createObjectNode();
+        //geomLd.put("@id", "https://data.vlaanderen.be/id/geometry/organisation/" + kboNummer);
+        geomLd.put("wkt", wkt);
+        jsonld.set("geometry", geomLd);
+
+        // --- Identifier object ---
+        ObjectNode ident = mapper.createObjectNode();
+        //ident.put("@id", "https://data.vlaanderen.be/id/identifier/organisation/" + kboNummer);
+        if (kboNummer.startsWith("2")) {
+            ident.put("vestigingsnrsnr", kboNummer);
+        }
+        else {
+            ident.put("ondermemingsnr", kboNummer);
+        }
+        ident.put("@type", "adms:Identifier");
+        jsonld.set("registratie", ident);
+        return jsonld ;
+    }
+
     private String transformToJsonLd(String json, String ondernemingsnummer) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(json);
-
-            // Feature ophalen (VKBO heeft altijd 1 element volgens jouw voorbeeld)
-            JsonNode feature = root.get("features").get(0);
-            JsonNode properties = feature.get("properties");
-            JsonNode geometry = feature.get("geometry");
+            int number = root
+                    .path("numberReturned")
+                    .asInt(0);
 
             // JSON-LD @context
             JsonNode context = jsonldConfiguration.getJsonLDContext();
 
-            // --- GEO: WKT POINT ---
-            ArrayNode coords = (ArrayNode) geometry.get("coordinates");
-            double lon = coords.get(0).asDouble();
-            double lat = coords.get(1).asDouble();
-
-            String wkt = "POINT(" + lon + " " + lat + ")";
-
             // --- JSON-LD root opbouwen ---
             ObjectNode jsonld = mapper.createObjectNode();
             jsonld.set("@context", context);
-            jsonld.put("@id", "https://data.vlaanderen.be/id/onderneming/" + ondernemingsnummer);
-            jsonld.put("ondernemingsnummer", ondernemingsnummer);
-            jsonld.put("type", "org:Organization");
 
+            jsonld.put("@id", "organisation:" + ondernemingsnummer);
+            //jsonld.put("type", "regorg:RegisteredOrganization");
 
-            // --- Organisatiegegevens vanuit VKBO ---
-            jsonld.put("maatschappelijkeNaam", properties.get("Maatschappelijke_naam").asText());
-            jsonld.put("rechtsvorm", properties.get("Rechtsvorm").asText());
-            jsonld.put("rechtstoestand", properties.get("Rechtstoestand").asText());
-            jsonld.put("startdatum", properties.get("Startdatum").asText());
-            jsonld.put("inschrijvingsdatum", properties.get("Datum_inschrijving").asText());
+            JsonNode features = root.get("features");
 
-            // --- Adresobject ---
-            ObjectNode adres = mapper.createObjectNode();
-            adres.put("@type", "locn:Address");
-            adres.put("straat", properties.get("VKBO_Straat").asText());
-            adres.put("huisnummer", properties.get("VKBO_Huisnr").asText());
-            adres.put("postcode", properties.get("VKBO_Postcode").asText());
-            adres.put("gemeente", properties.get("VKBO_Gemeente").asText());
-            jsonld.set("adres", adres);
+            if (number == 1) {
+                addUnit(jsonld, mapper, features.get(0), ondernemingsnummer) ;
+            }
+            if (number > 1) {
+                ArrayNode vestigingen = mapper.createArrayNode();
+                for (JsonNode feature : features) {
+                    ObjectNode vestiging = mapper.createObjectNode();
+                    vestigingen.add(addUnit(vestiging, mapper, feature, ondernemingsnummer));
 
-            // --- Geometry object ---
-            ObjectNode geomLd = mapper.createObjectNode();
-            geomLd.put("@id", "https://data.vlaanderen.be/id/geometry/onderneming/" + ondernemingsnummer);
-            geomLd.put("wkt", wkt);
-            jsonld.set("geometry", geomLd);
-
-            // --- Identifier object ---
-            ObjectNode ident = mapper.createObjectNode();
-            ident.put("@id", "https://data.vlaanderen.be/id/identifier/onderneming/" + ondernemingsnummer);
-            ident.put("waarde", ondernemingsnummer);
-            ident.put("@type", "adms:Identifier");
-            jsonld.set("identifier", ident);
+                }
+                jsonld.set("heeft_geregistreerde_vestiging", vestigingen );
+            }
 
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonld);
         }
@@ -136,19 +195,69 @@ public class OndernemingsService {
     }
 
     private String extractJsonLd(String ondernemingsnr) {
-        String json = extractOriginalJson(ondernemingsnr);
+        String json = null;
+        try {
+            json = extractOriginalJson(ondernemingsnr);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         return transformToJsonLd(json, ondernemingsnr );
     }
 
-    private String extractOriginalJson(String ondernemingsnr) {
-        String url = String.format("https://geo.api.vlaanderen.be/VKBO/ogc/features/v1/collections/Vkbo/items?f=application/json&filter-lang=cql-text&filter=Ondernemingsnr eq '%s'", ondernemingsnr);
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Accept", "application/json");
-        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+    private String extractOriginalJson(String ondernemingsnr) throws JsonProcessingException {
+        try {
+                String urlOnderneming = String.format(
+                        "https://geo.api.vlaanderen.be/VKBO/ogc/features/v1/collections/Vkbo/items?f=application/json&filter-lang=cql-text&filter=Ondernemingsnr eq '%s'",
+                        ondernemingsnr);
 
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
-        return response.getBody();
+
+            String urlMaatschappelijkeZetel = String.format(
+                    "https://geo.api.vlaanderen.be/VKBO/ogc/features/v1/collections/Vkbo/items?f=application/json&filter-lang=cql-text&filter=Ondernemingsnr_maatsch_zetel eq '%s'",
+                    ondernemingsnr);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Accept", "application/json");
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+            ObjectMapper mapper = new ObjectMapper();
+
+            // --- 1) Zoek op Ondernemingsnummer ---
+            ResponseEntity<String> ondernemingResp =
+                    restTemplate.exchange(urlOnderneming, HttpMethod.GET, requestEntity, String.class);
+
+            int numberOnderneming = mapper.readTree(ondernemingResp.getBody())
+                    .path("numberReturned")
+                    .asInt(0);
+
+            if (numberOnderneming > 0) {
+                return ondernemingResp.getBody();
+            }
+
+            // --- 2) Zo niet: zoek op Maatschappelijke Zetel ---
+            ResponseEntity<String> maatschappelijkeZetelResp =
+                    restTemplate.exchange(urlMaatschappelijkeZetel, HttpMethod.GET, requestEntity, String.class);
+
+            int numberMaatschZetel = mapper.readTree(maatschappelijkeZetelResp.getBody())
+                    .path("numberReturned")
+                    .asInt(0);
+
+            if (numberMaatschZetel > 0) {
+                return maatschappelijkeZetelResp.getBody();
+            }
+
+            // --- 3) Geen resultaten gevonden ---
+            ObjectNode fallback = mapper.createObjectNode();
+            fallback.put("type", "FeatureCollection");
+            fallback.put("numberMatched", 0);
+            fallback.put("numberReturned", 0);
+            fallback.putArray("features"); // lege array
+
+            return mapper.writeValueAsString(fallback);
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Fout bij verwerken JSON", e);
+        }
     }
+
 
     private String rdfToJsonLd(Model model) {
         StringWriter writer = new StringWriter();

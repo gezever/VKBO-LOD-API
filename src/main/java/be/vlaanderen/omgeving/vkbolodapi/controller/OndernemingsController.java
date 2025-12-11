@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.StringWriter;
 
 @RestController
-@RequestMapping("/id/onderneming")
+@RequestMapping("/id/organisation")
 @CrossOrigin
 public class OndernemingsController {
 

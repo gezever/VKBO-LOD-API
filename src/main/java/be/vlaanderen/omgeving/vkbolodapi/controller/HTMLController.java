@@ -28,8 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * https://geo.api.vlaanderen.be/capakey/v2/swagger/ui/index
- * http://localhost:8080/id/onderneming/1010353978
+ * http://localhost:8080/id/organisation/1010353978
  */
 @Controller
 public class HTMLController {
@@ -41,14 +40,14 @@ public class HTMLController {
     @Autowired
     private OndernemingsService ondernemingsService;
 
-    @GetMapping(value = "id/onderneming/{ondernemingsnr}",
+    @GetMapping(value = "id/organisation/{ondernemingsnr}",
                 produces = "text/html")
     public String getPerceelAsHtml(
             @PathVariable String ondernemingsnr) {
-        return "redirect:/doc/onderneming/{ondernemingsnr}";
+        return "redirect:/doc/organisation/{ondernemingsnr}";
     }
 
-    @GetMapping(value = "doc/onderneming/{ondernemingsnr}")
+    @GetMapping(value = "doc/organisation/{ondernemingsnr}")
     public String getPerceelDoc(
             @PathVariable String ondernemingsnr,
             Model model) {
@@ -79,7 +78,7 @@ public class HTMLController {
         // WKT POINT maken (EPSG:4326)
         String wktPoint = "POINT(" + lon + " " + lat + ")";
 
-        model.addAttribute("uri", "http://localhost:8080/id/onderneming/" + ondernemingsnr);
+        model.addAttribute("uri", "http://localhost:8080/id/organisation/" + ondernemingsnr);
         model.addAttribute("ondernemingsnr", ondernemingsnr);
         model.addAttribute("polygon", wktPoint);
         model.addAttribute("centerX", lon);

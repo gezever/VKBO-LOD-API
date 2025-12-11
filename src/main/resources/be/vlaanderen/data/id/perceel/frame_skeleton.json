@@ -1,4 +1,4 @@
 {
-  "@type": "geo:Feature",
+  "@type": ["org:FormalOrganization"],
   "@embed": "@always"
 }

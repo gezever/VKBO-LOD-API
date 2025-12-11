@@ -32,12 +32,34 @@ public class ReasoningModelConfiguration {
     @Value("classpath:org/w3/www/ns/locn/locn.ttl")
     private Resource locn;
 
+    @Value("classpath:org/w3/www/ns/org/org.ttl")
+    private Resource org;
+
+    @Value("classpath:org/w3/www/ns/regorg/regorg.ttl")
+    private Resource regorg;
+
     @Bean
     public  Model loadTurtleFromClasspath() {
         Model model_adms = ModelFactory.createDefaultModel();
         Resource adms = loadAdms();
         try {
             model_adms.read(adms.getInputStream(), null, "TURTLE");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Model model_org = ModelFactory.createDefaultModel();
+        Resource org = loadOrg();
+        try {
+            model_org.read(org.getInputStream(), null, "TURTLE");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Model model_regorg = ModelFactory.createDefaultModel();
+        Resource regorg = loadRegorg();
+        try {
+            model_adms.read(regorg.getInputStream(), null, "TURTLE");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -59,7 +81,7 @@ public class ReasoningModelConfiguration {
         }
 
         Model m = model_locn.union(model_geosparql);
-        return m.union(model_adms);
+        return m.union(model_adms).union(model_org).union(model_regorg);
     }
 
     @Bean
@@ -72,6 +94,14 @@ public class ReasoningModelConfiguration {
         } catch (IOException e) {
             throw new RuntimeException("Failed to construct rules", e);
         }
+    }
+
+    private Resource loadOrg() {
+        return org;
+    }
+
+    private Resource loadRegorg() {
+        return regorg;
     }
 
     private Resource loadLocn() {
