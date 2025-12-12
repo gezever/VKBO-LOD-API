@@ -73,7 +73,7 @@ public class OndernemingsService {
     }
 
     public Model extractModel(String originalJson, String ondernemingsnr) {
-        String jsonld = transformToJsonLd(originalJson, ondernemingsnr );
+        String jsonld = transformToJsonLd(originalJson, ondernemingsnr);
         return parseModelFromJsonLD(jsonld);
     }
 
@@ -86,7 +86,7 @@ public class OndernemingsService {
         return null;
     }
 
-    private ObjectNode addUnit(ObjectNode jsonld, ObjectMapper mapper, JsonNode feature, String ondernemingsnummer){
+    private ObjectNode addUnit(ObjectNode jsonld, ObjectMapper mapper, JsonNode feature) {
 
         JsonNode properties = feature.get("properties");
         JsonNode geometry = feature.get("geometry");
@@ -123,7 +123,6 @@ public class OndernemingsService {
         }
 
 
-
         // --- Adresobject ---
         ObjectNode adres = mapper.createObjectNode();
         //adres.put("@type", "locn:Address");
@@ -145,13 +144,12 @@ public class OndernemingsService {
         //ident.put("@id", "https://data.vlaanderen.be/id/identifier/organisation/" + kboNummer);
         if (kboNummer.startsWith("2")) {
             ident.put("vestigingsnrsnr", kboNummer);
-        }
-        else {
+        } else {
             ident.put("ondermemingsnr", kboNummer);
         }
         ident.put("@type", "adms:Identifier");
         jsonld.set("registratie", ident);
-        return jsonld ;
+        return jsonld;
     }
 
     private String transformToJsonLd(String json, String ondernemingsnummer) {
@@ -168,47 +166,50 @@ public class OndernemingsService {
             // --- JSON-LD root opbouwen ---
             ObjectNode jsonld = mapper.createObjectNode();
             jsonld.set("@context", context);
-
-            jsonld.put("@id", "organisation:" + ondernemingsnummer);
-            //jsonld.put("type", "regorg:RegisteredOrganization");
+            if (ondernemingsnummer.startsWith("0") || ondernemingsnummer.startsWith("1")) {
+                jsonld.put("@id", "organisation:" + ondernemingsnummer);
+                // --- Identifier object ---
+                ObjectNode ident = mapper.createObjectNode();
+                ident.put("ondermemingsnr", ondernemingsnummer);
+                jsonld.set("registratie", ident);
+            }
 
             JsonNode features = root.get("features");
 
             if (number == 1) {
-                addUnit(jsonld, mapper, features.get(0), ondernemingsnummer) ;
+                addUnit(jsonld, mapper, features.get(0));
             }
             if (number > 1) {
                 ArrayNode vestigingen = mapper.createArrayNode();
                 for (JsonNode feature : features) {
                     ObjectNode vestiging = mapper.createObjectNode();
-                    vestigingen.add(addUnit(vestiging, mapper, feature, ondernemingsnummer));
+                    vestigingen.add(addUnit(vestiging, mapper, feature));
 
                 }
-                jsonld.set("heeft_geregistreerde_vestiging", vestigingen );
+                jsonld.set("heeft_geregistreerde_vestiging", vestigingen);
             }
 
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonld);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to transform JSON to JSON-LD", e);
         }
     }
 
     private String extractJsonLd(String ondernemingsnr) {
-        String json = null;
+        String json ;
         try {
             json = extractOriginalJson(ondernemingsnr);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return transformToJsonLd(json, ondernemingsnr );
+        return transformToJsonLd(json, ondernemingsnr);
     }
 
     private String extractOriginalJson(String ondernemingsnr) throws JsonProcessingException {
         try {
-                String urlOnderneming = String.format(
-                        "https://geo.api.vlaanderen.be/VKBO/ogc/features/v1/collections/Vkbo/items?f=application/json&filter-lang=cql-text&filter=Ondernemingsnr eq '%s'",
-                        ondernemingsnr);
+            String urlOnderneming = String.format(
+                    "https://geo.api.vlaanderen.be/VKBO/ogc/features/v1/collections/Vkbo/items?f=application/json&filter-lang=cql-text&filter=Ondernemingsnr eq '%s'",
+                    ondernemingsnr);
 
 
             String urlMaatschappelijkeZetel = String.format(
@@ -283,8 +284,7 @@ public class OndernemingsService {
                 }
             }
             return JsonUtils.toPrettyString(framed);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -293,8 +293,7 @@ public class OndernemingsService {
         Model model = ModelFactory.createDefaultModel();
         try (InputStream is = new ByteArrayInputStream(jsonld.getBytes(StandardCharsets.UTF_8))) {
             RDFParser.source(is).lang(Lang.JSONLD).parse(model);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to parse JSON-LD to RDF", e);
         }
         return inferTriples(model, reasoningModelConfiguration.loadTurtleFromClasspath(), reasoningModelConfiguration.getRules());

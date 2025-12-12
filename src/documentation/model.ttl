@@ -26,7 +26,7 @@ PREFIX xsd:          <http://www.w3.org/2001/XMLSchema#>
 
 
 adms:Identifier
-        skos:notation  "http://todo.ex/vestigingsnummer" .
+        skos:notation  "http://todo.ex/vestigingsnummer" , "http://todo.ex/ondernemingsnummer" .
 
 
 skos:Concept  rdf:type  "skos:Concept" .
@@ -62,6 +62,8 @@ locn:Address
         ad:straatnaam        "http://www.w3.org/2001/XMLSchema#string" .
 
 org:FormalOrganization
+        adms:identifier         adms:Identifier;
+        regorg:registration     adms:Identifier;
         org:hasPrimarySite      org:OrganizationalUnit ;
         org:hasRegisteredSite   org:OrganizationalUnit ;
         org:hasSite             org:OrganizationalUnit ;
