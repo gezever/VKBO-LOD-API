@@ -1,4 +1,4 @@
-package be.vlaanderen.omgeving.capakeylodapi;
+package be.vlaanderen.omgeving.vkbolodapi;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,34 +13,34 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class PerceelControllerTest {
+class OndernemingsControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
     void testJsonResponse() throws Exception {
-        mockMvc.perform(get("/id/perceel/24504D0693/00B000")
+        mockMvc.perform(get("/id/organisatie/0401574852")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.capakey").value("24504D0693/00B000"))
+                .andExpect(jsonPath("$.capakey").value("0401574852"))
                 .andExpect(content().contentTypeCompatibleWith("application/json"));
     }
 
     @Test
     void testJsonLdResponse() throws Exception {
-        mockMvc.perform(get("/id/perceel/24504D0693/00B000")
+        mockMvc.perform(get("/id/organisatie/0401574852")
                 .accept("application/ld+json"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/ld+json"))
-                .andExpect(jsonPath("identifier.capakey").value("24504D0693/00B000"))
+                .andExpect(jsonPath("identifier.capakey").value("0401574852"))
                 .andExpect(jsonPath("geometry.type").value("geo:Geometry"));
     }
 
     @Test
     void testTurtleResponse() throws Exception {
-        mockMvc.perform(get("/id/perceel/24504D0693/00B000")
+        mockMvc.perform(get("/id/organisatie/0401574852")
                 .accept("text/turtle"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("text/turtle"))
@@ -49,7 +49,7 @@ class PerceelControllerTest {
 
     @Test
     void testXmlRdfResponse() throws Exception {
-        mockMvc.perform(get("/id/perceel/24504D0693/00B000")
+        mockMvc.perform(get("/id/organisatie/0401574852")
                 .accept("application/rdf+xml"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/rdf+xml"))
@@ -58,14 +58,14 @@ class PerceelControllerTest {
 
     @Test
     void testInternalServerError() throws Exception {
-        mockMvc.perform(get("/id/perceel/FAKE/12345")
+        mockMvc.perform(get("/id/organisatie/FAKE12345")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("An error has occurred")));
     }
 
     @Test
     void testUnsupportedAcceptHeader() throws Exception {
-        mockMvc.perform(get("/id/perceel/24504D0693/00B000")
+        mockMvc.perform(get("/id/organisatie/0401574852")
                 .accept("application/xml"))
                 .andExpect(status().isNotAcceptable());
     }

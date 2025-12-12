@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * http://localhost:8080/id/organisation/1010353978
+ * http://localhost:8080/id/organisatie/1010353978
  */
 @Controller
 public class HTMLController {
@@ -40,14 +40,14 @@ public class HTMLController {
     @Autowired
     private OndernemingsService ondernemingsService;
 
-    @GetMapping(value = "id/organisation/{ondernemingsnr}",
+    @GetMapping(value = "id/organisatie/{ondernemingsnr}",
                 produces = "text/html")
     public String getPerceelAsHtml(
             @PathVariable String ondernemingsnr) {
-        return "redirect:/doc/organisation/{ondernemingsnr}";
+        return "redirect:/doc/organisatie/{ondernemingsnr}";
     }
 
-    @GetMapping(value = "doc/organisation/{ondernemingsnr}")
+    @GetMapping(value = "doc/organisatie/{ondernemingsnr}")
     public String getPerceelDoc(
             @PathVariable String ondernemingsnr,
             Model model) {
@@ -78,7 +78,7 @@ public class HTMLController {
         // WKT POINT maken (EPSG:4326)
         String wktPoint = "POINT(" + lon + " " + lat + ")";
 
-        model.addAttribute("uri", "http://localhost:8080/id/organisation/" + ondernemingsnr);
+        model.addAttribute("uri", "http://localhost:8080/id/organisatie/" + ondernemingsnr);
         model.addAttribute("ondernemingsnr", ondernemingsnr);
         model.addAttribute("polygon", wktPoint);
         model.addAttribute("centerX", lon);

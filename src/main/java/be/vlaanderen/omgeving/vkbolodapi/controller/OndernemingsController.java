@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.StringWriter;
 
 @RestController
-@RequestMapping("/id/organisation")
+@RequestMapping("/id/organisatie")
 @CrossOrigin
 public class OndernemingsController {
 
@@ -24,7 +24,7 @@ public class OndernemingsController {
 
     @GetMapping(value = "/{ondernemingsnr}",
                 produces = "application/json")
-    public ResponseEntity<String> getPerceelAsJson(
+    public ResponseEntity<String> getOrganisationAsJson(
             @PathVariable String ondernemingsnr ){
 
         String json = ondernemingsService.getJson(ondernemingsnr);

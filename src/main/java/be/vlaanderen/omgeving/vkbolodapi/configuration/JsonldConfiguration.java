@@ -20,10 +20,10 @@ import java.util.Map;
 @Configuration
 public class JsonldConfiguration {
 
-    @Value("classpath:be/vlaanderen/data/id/perceel/context.json")
+    @Value("classpath:be/vlaanderen/data/id/organisatie/context.json")
     private Resource contextFile;
 
-    @Value("classpath:be/vlaanderen/data/id/perceel/frame_skeleton.json")
+    @Value("classpath:be/vlaanderen/data/id/organisatie/frame_skeleton.json")
     private Resource jsonldFrame;
 
     @Bean

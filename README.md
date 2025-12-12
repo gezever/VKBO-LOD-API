@@ -1,12 +1,13 @@
 # VKBO-LOD-API
-## Ondernemingen en vestigingen API - VKBO WFS van JSON naar JSON-LD en Turtle
+## Ondernemingen en vestigingen API - VKBO OGC van JSON naar JSON-LD en Turtle
 
-Deze webapplicatie stelt een eenvoudige HTTP-API beschikbaar waarmee je informatie over een Vlaams perceel (op basis van CAPAKey) kunt opvragen in verschillende formaten:
+Deze webapplicatie stelt een eenvoudige HTTP-API beschikbaar waarmee je informatie over een onderneming (op basis van de ondenemingsnummer) kunt opvragen in verschillende formaten:
 
 - `application/json` (originele API-response)
 - `application/ld+json` (verrijkte JSON-LD)
 - `text/turtle` (geparsed RDF-model in Turtle)
 - `application/rdf+xml` (geparsed RDF-model in rdf/xml)
+- `text/html` (verrijkte JSON-LD + originele API-response gepresenteerd in html met een kaartje)
 
 ---
 
@@ -17,8 +18,8 @@ Zorg dat je Java 17+ en Maven geïnstalleerd hebt.
 Clone dit project:
 
 ```bash
-git clone https://github.com/gezever/CAPAKEY-LOD-API.git
-cd CAPAKEY-LOD-API
+git clone https://github.com/gezever/VKBO-LOD-API.git
+cd VKBO-LOD-API
 ```
 
 
@@ -26,7 +27,7 @@ cd CAPAKEY-LOD-API
 
 ```bash
 mvn clean install
-java -jar target/capakeylodapi-0.0.1-SNAPSHOT.jar
+java -jar target/vkbolodapi-0.0.1-SNAPSHOT.jar
 ```
 ### of
 
@@ -41,38 +42,38 @@ De applicatie draait standaard op:
 ## 🔍 Voorbeelden
 ### 1. Opvragen als JSON (originele Geo API-response)
 ```bash
-   curl -H "Accept: application/json" http://localhost:8080/id/perceel/24504D0693/00B000
+   curl -H "Accept: application/json"  http://localhost:8080/id/organisatie/0401574852
 ```   
 ### 2. Opvragen als JSON-LD
 ```bash
-   curl -H "Accept: application/ld+json" http://localhost:8080/id/perceel/24504D0693/00B000
+   curl -H "Accept: application/ld+json"  http://localhost:8080/id/organisatie/0401574852
 ```      
    Geeft een verrijkte response terug met @context, WKT-geometrie en linked-data structuur.
 
 ### 3. Opvragen als Turtle
 ```bash
-   curl -H "Accept: text/turtle" http://localhost:8080/id/perceel/24504D0693/00B000
+   curl -H "Accept: text/turtle"  http://localhost:8080/id/organisatie/0401574852
 ```
    Geeft RDF-data terug in text/turtle formaat, bruikbaar in triple stores of RDF-tooling.
 
 ### 4. Opvragen als Rdf/Xml
 ```bash
-   curl -H "Accept: application/rdf+xml" http://localhost:8080/id/perceel/24504D0693/00B000
+   curl -H "Accept: application/rdf+xml"  http://localhost:8080/id/organisatie/0401574852
 ```
 Geeft RDF-data terug in rdf/xml formaat, bruikbaar in triple stores, RDF-tooling, of xslt-processen.
 
 ## 📦 Endpoints
-| Methode | Endpoint | Beschrijving |
-| :----- | :-----: | :----- |
-| GET | /id/perceel/{capakey1}/{capakey2} | Perceelinformatie ophalen |
+| Methode |               Endpoint               | Beschrijving                   |
+| :----- |:------------------------------------:|:-------------------------------|
+| GET | /id/organisatie/{ondernemingsnummer} | Ondernemingsinformatie ophalen |
 
 Voorbeeld:
-/id/perceel/24504D0693/00B000
+/id/organisatie/0401574852
 
 ## 🛠 Interne werking
 #### De applicatie gebruikt:
 
- - RestTemplate om data op te halen bij https://geo.api.vlaanderen.be
+ - RestTemplate om data op te halen bij https://geo.api.vlaanderen.be/VKBO/ogc/features/v1/collections/Vkbo/items
 
  - Jackson voor JSON-parsing
 
