@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * http://localhost:8080/id/organisatie/1010353978
+ * <a href="http://localhost:8080/id/organisatie/1010353978">...</a>
  */
 @Controller
 public class HTMLController {
@@ -66,7 +66,7 @@ public class HTMLController {
         // WKT POINT maken (EPSG:4326)
         String wktPoint = "POINT(" + lon + " " + lat + ")";
 
-        model.addAttribute("uri", "https://data.omgeving.vlaanderen.be/id/organisatie/id/organisatie/" + ondernemingsnr);
+        model.addAttribute("uri", "http://localhost:8080/id/organisatie/" + ondernemingsnr);
         model.addAttribute("ondernemingsnr", ondernemingsnr);
         model.addAttribute("polygon", wktPoint);
         model.addAttribute("centerX", lon);

@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="'Fiche perceel '+${uri}">Perceel</title>
+    <title th:text="'Fiche Onderneming '+${uri}">Onderneming</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@7.3.0/dist/ol.css"/>-->
@@ -29,7 +29,7 @@
         <td><a th:href="${uri}+'?format=json'" target="_blank"><span>json(original api call)</span></a></td>
     </tr>
 </table>
-<h3 th:text="Onderneming +' '+ ${ondernemingsnr}">Perceel capakey</h3>
+<h3 th:text="Onderneming +' '+ ${ondernemingsnr}">Ondernemingsnummer</h3>
 <p><a th:href="${uri}"><span th:text="${uri}">uri</span></a></p>
 <h3>Map</h3>
 <div id="map"></div>
